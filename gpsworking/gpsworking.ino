@@ -1,6 +1,7 @@
 #include <math.h>
 #include <SoftwareSerial.h>
 
+#include <Ultrasonic.h>
 #include <TinyGPS.h>
 
 /* This sample code demonstrates the normal use of a TinyGPS object.
@@ -9,15 +10,21 @@
  */
 
 
-
+const byte TR1 = 5;
+const byte TR2 = 6;
+const byte TR3 = 7;
+const byte EC1 = 8;
+const byte EC2 = 9;
+const byte EC3 = 1;
 
 TinyGPS gps;
 SoftwareSerial ss(4,3);
+Ultrasonic us1();
 
-float flatAnt, flonAnt;
+
 float flat, flon;
+const float MILESTOKM = 1.609344;
 
-float cmillis,cmillisAnt;
 unsigned long velocidad;
 
 
@@ -25,16 +32,11 @@ void setup()
 {
   Serial.begin(115200);
   ss.begin(9600);
-  flat=0.0;
-  flon=0.0;
-  
   
   Serial.print("Simple TinyGPS library v. "); 
   Serial.println(TinyGPS::library_version());
   Serial.println("by Mikal Hart");
   Serial.println();
-  
-  cmillis=millis();
 
   
 }
@@ -60,11 +62,7 @@ void loop()
 
   if (newData)
   {
-    flatAnt = flat;
-    flonAnt = flon;
     unsigned long age;
-    cmillisAnt=cmillis;
-    cmillis = millis();
     gps.f_get_position(&flat, &flon, &age);
     
     Serial.print("LAT=");
@@ -93,42 +91,12 @@ void loop()
   if (chars == 0)
     Serial.println("** No characters received from GPS: check wiring **");
 
-/*
-  int R = 6371000; // metres
-  float l1 = toRad(flat);
-  float l2 = toRad(flatAnt); 
-  float dLat = toRad(flatAnt-flat);
-  float dLong = toRad(flonAnt-flon);
 
-  float a = sin(dLat/2) * sin(dLat/2) +
-    cos(l1) * cos(l2) *
-    sin(dLong/2) * sin(dLong/2);
 
-  float c = 2 * atan2(sqrt(a), sqrt(1-a));
-
-  float d = R * c;
-
-  velocidad = d/(cmillisAnt-cmillis);
-
-  velocidad = velocidad * 3600;
-  
-  Serial.print(d,5); Serial.println(" m");
-  Serial.print(velocidad,5);Serial.println(" Km/h");
-
-*/
-
- velocidad = gps.f_speed_mph() * 1.609344;
+ velocidad = gps.f_speed_mph() * MILESTOKM;
  
  Serial.print(velocidad);
  Serial.println(" km/h");
+ 
 
 }
-
-
-
-double toRad (float grados){
-
-  return (grados * M_PI) / 180; //3.14159265359
-
-}
-
