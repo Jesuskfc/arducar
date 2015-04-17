@@ -45,7 +45,7 @@ void setup() {
 }
 
 void loop() {
-  lcd.clear()  //Limpiamos el LCD
+  lcd.clear();  //Limpiamos el LCD
   lcd.setCursor(0, 0);  //Colocamos el cursor al inicio del LCD
   lcd.print("Luz:");
   luzamb = analogRead(SENSLUZ);  //Obtenemos el valor del sensor de luz

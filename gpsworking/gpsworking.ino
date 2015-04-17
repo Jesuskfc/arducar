@@ -4,6 +4,7 @@
 #include <Ultrasonic.h>
 #include <TinyGPS.h>
 
+
 /* This sample code demonstrates the normal use of a TinyGPS object.
  It requires the use of SoftwareSerial, and assumes that you have a
  4800-baud serial GPS device hooked up on pins 4(rx) and 3(tx).
@@ -15,7 +16,7 @@ const byte TR2 = 6;
 const byte TR3 = 7;
 const byte EC1 = 8;
 const byte EC2 = 9;
-const byte EC3 = 1;
+const byte EC3 = 10;
 
 TinyGPS gps;
 SoftwareSerial ss(4,3);
@@ -30,6 +31,8 @@ const float MILESTOKM = 1.609344;
 unsigned long velocidad;
 
 
+String csv;
+
 void setup()
 {
   Serial.begin(115200);
@@ -40,7 +43,7 @@ void setup()
   Serial.println("by Mikal Hart");
   Serial.println();
   
-  std::stram csv;
+  
 
   
 }
@@ -102,17 +105,16 @@ void loop()
  Serial.print(velocidad);
  Serial.println(" km/h");
  
- if(velocidad > 10){
-   
-   csv = velocidad;
-   
-   
- }else{
  
-   csv = us1.Ranging(CM) + ";" + us1.Ranging(CM) + ";" + us1.Ranging(CM);
- 
- }
- 
- Serial.print(csv);
+ Serial.print(us1.Ranging(CM));
+ Serial.println(" cm");
+ Serial.print(us2.Ranging(CM));
+ Serial.println(" cm");
+ Serial.print(us3.Ranging(CM));
+ Serial.println(" cm");
+
+
+
+
 
 }
