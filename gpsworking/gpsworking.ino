@@ -1,6 +1,6 @@
 #include <math.h>
 #include <SoftwareSerial.h>
-
+#include <string>
 #include <Ultrasonic.h>
 #include <TinyGPS.h>
 
@@ -19,7 +19,9 @@ const byte EC3 = 1;
 
 TinyGPS gps;
 SoftwareSerial ss(4,3);
-Ultrasonic us1();
+Ultrasonic us1(TR1,EC1);
+Ultrasonic us2(TR2,EC2);
+Ultrasonic us3(TR3,EC3);
 
 
 float flat, flon;
@@ -37,6 +39,8 @@ void setup()
   Serial.println(TinyGPS::library_version());
   Serial.println("by Mikal Hart");
   Serial.println();
+  
+  std::stram csv;
 
   
 }
@@ -98,5 +102,17 @@ void loop()
  Serial.print(velocidad);
  Serial.println(" km/h");
  
+ if(velocidad > 10){
+   
+   csv = velocidad;
+   
+   
+ }else{
+ 
+   csv = us1.Ranging(CM) + ";" + us1.Ranging(CM) + ";" + us1.Ranging(CM);
+ 
+ }
+ 
+ Serial.print(csv);
 
 }
