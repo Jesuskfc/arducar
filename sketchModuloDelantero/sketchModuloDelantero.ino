@@ -124,6 +124,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.print(cm3);
     lcd.setCursor(14, 1);
     lcd.print("cm");
+    ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
     ledMatrix.setColumn(0, 2, B00000000);  //Endendemos la cuarta columna
     ledMatrix.setColumn(0, 5, B00000000);
     if (cm1 > 40) {

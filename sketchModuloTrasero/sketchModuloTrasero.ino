@@ -110,21 +110,21 @@ void loop()
  Serial.print("v");
  Serial.print(velocidad);
  Serial.print("f");
- delay(50);
+ delay(100);
  Serial.print("z");
  Serial.print(us1.Ranging(CM));
  Serial.print("f");
-  delay(50);
+  delay(100);
  //Serial.println(" cm");
  Serial.print("x");
  Serial.print(us2.Ranging(CM));
  Serial.print("f");
-  delay(50);
+  delay(100);
  //Serial.println(" cm");
  Serial.print("c");
  Serial.print(us3.Ranging(CM));
  Serial.print("f");
-  delay(50);
+  delay(100);
  //Serial.println(" cm");
 
 
