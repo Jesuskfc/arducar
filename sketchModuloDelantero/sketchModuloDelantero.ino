@@ -45,13 +45,15 @@ LedControl ledMatrix = LedControl(DINLED, CLKLED, CSLED, QTD_DISP);  //Creamos l
 
 int luzamb;  //Almacen para el valor obtenido por el sensor de luz
 int tempamb;  //Almacen para el valor obtenido por el sensor de temperatura
-float tempgrados  //Temperatura en grados centigrados
+float tempgrados;  //Temperatura en grados centigrados
 int modo;  //Modo actual del modulo delantero (inicio, aparcamiento, velocidad)
 float velocidad;
 //int adc_key_in = 0;
 int cm1;
 int cm2;
 int cm3;
+char* lectura;
+char leida;
 
 /*
 int read_LCD_buttons()
@@ -69,9 +71,9 @@ int read_LCD_buttons()
 
 int getMode() {  //Obtiene el modo actual en funcion de la velocidad
   if (velocidad >= 15) {
-    modo = mdeVELOC;
+    return mdeVELOC;
   } else {
-    modo = mdeAPARCA;
+    return mdeAPARCA;
   }
 }
 
@@ -89,7 +91,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.print("La temperatura  ");
     lcd.setCursor(0, 1);
     lcd.print("actual es ");
-    lcd.print(tempgrados,1);  //Muestra la temperatura actual en grados con un decimal
+    lcd.print(analogRead(5));  //Muestra la temperatura actual en grados con un decimal
     delay(2500);  //Esperamos 2.5s
   } else if (modo == mdeVELOC) {  //Si estamos en el modo de VELOCIDAD
     lcd.clear();
@@ -148,10 +150,31 @@ void setup() {
 }
 
 void loop() {
-  /*
-      Gestionar la lectura desde el XBEE y obtener los valores de cada sensor
-      el izquierdo (cm1), el del medio (cm2) y el de la derecha (cm3) y la velocidad
-    */
+  while (Serial.available()>0){
+    lectura="";
+    if (Serial.read()=='v'){
+      while(leida=Serial.read()!='f'){
+        lectura=lectura+leida;
+      }
+      velocidad=atoi(lectura);
+    }
+    else if(Serial.read()=='z'){
+      while(leida=Serial.read()!='f'){
+        lectura=lectura+leida;
+      }
+      cm1=atoi(lectura);
+    }else if(Serial.read()=='x'){
+      while(leida=Serial.read()!='f'){
+        lectura=lectura+leida;
+      }
+      cm2=atoi(lectura);
+    }else if(Serial.read()=='c'){
+      while(leida=Serial.read()!='f'){
+        lectura=lectura+leida;
+      }
+      cm3=atoi(lectura);
+    }
+  }
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
     pinMode(10, INPUT);
   } else {
