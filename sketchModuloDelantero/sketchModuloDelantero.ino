@@ -125,6 +125,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.setCursor(14, 1);
     lcd.print("cm");
     ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
+    delay(100);
     ledMatrix.setColumn(0, 2, B00000000);  //Endendemos la cuarta columna
     ledMatrix.setColumn(0, 5, B00000000);
     if (cm1 > 40) {
@@ -213,7 +214,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
       ledMatrix.setColumn(0, 6, B11111111);
       ledMatrix.setColumn(0, 7, B11111111);
     }
-
+  delay(100);
 
   }
 }
@@ -238,17 +239,16 @@ void setup() {
 
 void loop() {
   //lectura = "";
-  //Serial.println("Lectura reseteada");
-  String lectura;
-  //Serial.println(lectura);
   while (Serial.available() > 0) {
+    String lectura;
+    //Serial.println("Lectura reseteada");
     //Serial.println("Hay datos en el serial");
-    id=Serial.read();
-    if (id == 'v') {
+    leida=Serial.read();
+    if (leida == 'v') {
       //Serial.println("EL caracter es v");
       leida = Serial.read();
       while (leida != 'f') {
-       // Serial.println("Continua la lectura");
+        //Serial.println("Continua la lectura");
         //Serial.println(leida);
         //Serial.println("Valor leido mostrado");
         lectura = lectura + leida;
@@ -260,54 +260,81 @@ void loop() {
         } else {
           leida = 'f';
         }
-
+       
       }
-      //Serial.println("Fin de lectura");
+      //Serial.println("Fin de lectura pertinente");
       velocidad = lectura.toInt();
       //Serial.println("Mostrando velocidad:");
       //Serial.println(velocidad);
+
     }
-    else if (id == 'z') {
+    if (leida == 'z') {
+      //Serial.println("EL caracter es z");
       leida = Serial.read();
       while (leida != 'f') {
+        //Serial.println("Continua la lectura");
         //Serial.println(leida);
+        //Serial.println("Valor leido mostrado");
         lectura = lectura + leida;
+        //Serial.println("Mostrando string:");
         //Serial.println(lectura);
+        //Serial.println("String mostrado");
         if (Serial.available() > 0) {
           leida = Serial.read();
         } else {
           leida = 'f';
         }
+        
       }
+      //Serial.println("Fin de lectura pertinente");
       cm1 = lectura.toInt();
+      //Serial.println("Mostrando cm:");
       //Serial.println(cm1);
-    } else if (id == 'x') {
+    }
+    if (leida == 'x') {
+      //Serial.println("EL caracter es x");
       leida = Serial.read();
       while (leida != 'f') {
+        //Serial.println("Continua la lectura");
         //Serial.println(leida);
+        //Serial.println("Valor leido mostrado");
         lectura = lectura + leida;
+        //Serial.println("Mostrando string:");
         //Serial.println(lectura);
+        //Serial.println("String mostrado");
         if (Serial.available() > 0) {
           leida = Serial.read();
         } else {
           leida = 'f';
         }
+        
       }
+      //Serial.println("Fin de lectura pertinente");
       cm2 = lectura.toInt();
+      //Serial.println("Mostrando cm:");
       //Serial.println(cm2);
-    } else if (id == 'c') {
+    }
+    if (leida == 'c') {
+      //Serial.println("EL caracter es c");
       leida = Serial.read();
       while (leida != 'f') {
+        //Serial.println("Continua la lectura");
         //Serial.println(leida);
+        //Serial.println("Valor leido mostrado");
         lectura = lectura + leida;
+        //Serial.println("Mostrando string:");
         //Serial.println(lectura);
+        //Serial.println("String mostrado");
         if (Serial.available() > 0) {
           leida = Serial.read();
         } else {
           leida = 'f';
         }
+        
       }
+      //Serial.println("Fin de lectura pertinente");
       cm3 = lectura.toInt();
+      //Serial.println("Mostrando cm:");
       //Serial.println(cm3);
     }
   }
