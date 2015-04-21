@@ -52,8 +52,9 @@ float velocidad;
 int cm1;
 int cm2;
 int cm3;
-char* lectura;
+//char* lectura;
 char leida;
+char id;
 
 /*
 int read_LCD_buttons()
@@ -229,35 +230,84 @@ void setup() {
   modo = mdeINICIO;
   velocidad = 0.0;
   ledMatrix.shutdown(0, false);  //Ponemos el estado apagado a falso en la matriz de LEDs 0, es decir, encendemos la matriz de LEDs
-  ledMatrix.setIntensity(0, 5);  //Colocamos un valor de intensidad de brillo de 5 (0~16)
+  ledMatrix.setIntensity(0, 16);  //Colocamos un valor de intensidad de brillo de 5 (0~16)
   ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
   Serial.begin(9600);  //Inicia la conexion entre XBEEs
 }
 
 void loop() {
+  //lectura = "";
+  //Serial.println("Lectura reseteada");
+  String lectura;
+  //Serial.println(lectura);
   while (Serial.available() > 0) {
-    lectura = "";
-    if (Serial.read() == 'v') {
-      while (leida = Serial.read() != 'f') {
+    //Serial.println("Hay datos en el serial");
+    id=Serial.read();
+    if (id == 'v') {
+      //Serial.println("EL caracter es v");
+      leida = Serial.read();
+      while (leida != 'f') {
+       // Serial.println("Continua la lectura");
+        //Serial.println(leida);
+        //Serial.println("Valor leido mostrado");
         lectura = lectura + leida;
+        //Serial.println("Mostrando string:");
+        //Serial.println(lectura);
+        //Serial.println("String mostrado");
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
+
       }
-      velocidad = atoi(lectura);
+      //Serial.println("Fin de lectura");
+      velocidad = lectura.toInt();
+      //Serial.println("Mostrando velocidad:");
+      //Serial.println(velocidad);
     }
-    else if (Serial.read() == 'z') {
-      while (leida = Serial.read() != 'f') {
+    else if (id == 'z') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        //Serial.println(leida);
         lectura = lectura + leida;
+        //Serial.println(lectura);
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
       }
-      cm1 = atoi(lectura);
-    } else if (Serial.read() == 'x') {
-      while (leida = Serial.read() != 'f') {
+      cm1 = lectura.toInt();
+      //Serial.println(cm1);
+    } else if (id == 'x') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        //Serial.println(leida);
         lectura = lectura + leida;
+        //Serial.println(lectura);
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
       }
-      cm2 = atoi(lectura);
-    } else if (Serial.read() == 'c') {
-      while (leida = Serial.read() != 'f') {
+      cm2 = lectura.toInt();
+      //Serial.println(cm2);
+    } else if (id == 'c') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        //Serial.println(leida);
         lectura = lectura + leida;
+        //Serial.println(lectura);
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
       }
-      cm3 = atoi(lectura);
+      cm3 = lectura.toInt();
+      //Serial.println(cm3);
     }
   }
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
