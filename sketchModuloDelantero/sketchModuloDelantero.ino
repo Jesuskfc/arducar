@@ -1,8 +1,8 @@
 /*
     +XBEE conectado tal cual al Arduino a través de los cables
     +Tierra (GND) a una de las hileras de la protoboard y 5V a la otra
-    +Pantalla LCD con todos sus pines conectados, los que correspondan 
-  a la Arduino y los que correspondan a la XBEE, los 5V de la LCD a la 
+    +Pantalla LCD con todos sus pines conectados, los que correspondan
+  a la Arduino y los que correspondan a la XBEE, los 5V de la LCD a la
   hilera de la protoboard de 5V y la GND de la LCD a la hilera de GND
   de la protoboard
     +SHIELD de LEDs con VCC a la hilera de 5V de la protoboard y con GND a
@@ -85,7 +85,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.setCursor(0, 1);
     lcd.print("amigo conductor!");
     delay(2500);  //Esperamos 2.5s
-    tempgrados=calcularGrados();  //Esta la cabecera de la funcion creada mas abajo, cread la funcion o si encontrais una ya creada eliminad esto
+    tempgrados = calcularGrados(); //Esta la cabecera de la funcion creada mas abajo, cread la funcion o si encontrais una ya creada eliminad esto
     lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("La temperatura  ");
@@ -123,15 +123,100 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.print(cm3);
     lcd.setCursor(14, 1);
     lcd.print("cm");
-    /*
-      Encender las columnas correspondientes a cada sensor con tantos LEDs como
-      cercania al sensor se detecte, a partir de los valores cm obtenidos justo antes
-    */
+    ledMatrix.setColumn(0, 2, B00000000);  //Endendemos la cuarta columna
+    ledMatrix.setColumn(0, 5, B00000000);
+    if (cm1 > 40) {
+      ledMatrix.setColumn(0, 0, B00000000);
+      ledMatrix.setColumn(0, 1, B00000000);
+    } else if (cm1 > 35) {
+      ledMatrix.setColumn(0, 0, B00000001);
+      ledMatrix.setColumn(0, 1, B00000001);
+    } else if (cm1 > 30) {
+      ledMatrix.setColumn(0, 0, B00000011);
+      ledMatrix.setColumn(0, 1, B00000011);
+    } else if (cm1 > 25) {
+      ledMatrix.setColumn(0, 0, B00000111);
+      ledMatrix.setColumn(0, 1, B00000111);
+    } else if (cm1 > 20) {
+      ledMatrix.setColumn(0, 0, B00001111);
+      ledMatrix.setColumn(0, 1, B00001111);
+    } else if (cm1 > 15) {
+      ledMatrix.setColumn(0, 0, B00011111);
+      ledMatrix.setColumn(0, 1, B00011111);
+    } else if (cm1 > 10) {
+      ledMatrix.setColumn(0, 0, B00111111);
+      ledMatrix.setColumn(0, 1, B00111111);
+    } else if (cm1 > 5) {
+      ledMatrix.setColumn(0, 0, B01111111);
+      ledMatrix.setColumn(0, 1, B01111111);
+    } else if (cm1 >= 0) {
+      ledMatrix.setColumn(0, 0, B11111111);
+      ledMatrix.setColumn(0, 1, B11111111);
+    }
+
+    if (cm2 > 40) {
+      ledMatrix.setColumn(0, 3, B00000000);
+      ledMatrix.setColumn(0, 4, B00000000);
+    } else if (cm2 > 35) {
+      ledMatrix.setColumn(0, 3, B00000001);
+      ledMatrix.setColumn(0, 4, B00000001);
+    } else if (cm2 > 30) {
+      ledMatrix.setColumn(0, 3, B00000011);
+      ledMatrix.setColumn(0, 4, B00000011);
+    } else if (cm2 > 25) {
+      ledMatrix.setColumn(0, 3, B00000111);
+      ledMatrix.setColumn(0, 4, B00000111);
+    } else if (cm2 > 20) {
+      ledMatrix.setColumn(0, 3, B00001111);
+      ledMatrix.setColumn(0, 4, B00001111);
+    } else if (cm2 > 15) {
+      ledMatrix.setColumn(0, 3, B00011111);
+      ledMatrix.setColumn(0, 4, B00011111);
+    } else if (cm2 > 10) {
+      ledMatrix.setColumn(0, 3, B00111111);
+      ledMatrix.setColumn(0, 4, B00111111);
+    } else if (cm2 > 5) {
+      ledMatrix.setColumn(0, 3, B01111111);
+      ledMatrix.setColumn(0, 4, B01111111);
+    } else if (cm2 >= 0) {
+      ledMatrix.setColumn(0, 3, B11111111);
+      ledMatrix.setColumn(0, 4, B11111111);
+    }
+
+    if (cm3 > 40) {
+      ledMatrix.setColumn(0, 6, B00000000);
+      ledMatrix.setColumn(0, 7, B00000000);
+    } else if (cm3 > 35) {
+      ledMatrix.setColumn(0, 6, B00000001);
+      ledMatrix.setColumn(0, 7, B00000001);
+    } else if (cm3 > 30) {
+      ledMatrix.setColumn(0, 6, B00000011);
+      ledMatrix.setColumn(0, 7, B00000011);
+    } else if (cm3 > 25) {
+      ledMatrix.setColumn(0, 6, B00000111);
+      ledMatrix.setColumn(0, 7, B00000111);
+    } else if (cm3 > 20) {
+      ledMatrix.setColumn(0, 6, B00001111);
+      ledMatrix.setColumn(0, 7, B00001111);
+    } else if (cm3 > 15) {
+      ledMatrix.setColumn(0, 6, B00011111);
+      ledMatrix.setColumn(0, 7, B00011111);
+    } else if (cm3 > 10) {
+      ledMatrix.setColumn(0, 6, B00111111);
+      ledMatrix.setColumn(0, 7, B00111111);
+    } else if (cm3 > 5) {
+      ledMatrix.setColumn(0, 6, B01111111);
+      ledMatrix.setColumn(0, 7, B01111111);
+    } else if (cm3 >= 0) {
+      ledMatrix.setColumn(0, 6, B11111111);
+      ledMatrix.setColumn(0, 7, B11111111);
+    }
+
 
   }
 }
 
-float calcularGrados(){
+float calcularGrados() {
   /*
     Obtener el valor del sensor de calor y transformar ese valor abstracto a grados
     centigrados
@@ -150,29 +235,29 @@ void setup() {
 }
 
 void loop() {
-  while (Serial.available()>0){
-    lectura="";
-    if (Serial.read()=='v'){
-      while(leida=Serial.read()!='f'){
-        lectura=lectura+leida;
+  while (Serial.available() > 0) {
+    lectura = "";
+    if (Serial.read() == 'v') {
+      while (leida = Serial.read() != 'f') {
+        lectura = lectura + leida;
       }
-      velocidad=atoi(lectura);
+      velocidad = atoi(lectura);
     }
-    else if(Serial.read()=='z'){
-      while(leida=Serial.read()!='f'){
-        lectura=lectura+leida;
+    else if (Serial.read() == 'z') {
+      while (leida = Serial.read() != 'f') {
+        lectura = lectura + leida;
       }
-      cm1=atoi(lectura);
-    }else if(Serial.read()=='x'){
-      while(leida=Serial.read()!='f'){
-        lectura=lectura+leida;
+      cm1 = atoi(lectura);
+    } else if (Serial.read() == 'x') {
+      while (leida = Serial.read() != 'f') {
+        lectura = lectura + leida;
       }
-      cm2=atoi(lectura);
-    }else if(Serial.read()=='c'){
-      while(leida=Serial.read()!='f'){
-        lectura=lectura+leida;
+      cm2 = atoi(lectura);
+    } else if (Serial.read() == 'c') {
+      while (leida = Serial.read() != 'f') {
+        lectura = lectura + leida;
       }
-      cm3=atoi(lectura);
+      cm3 = atoi(lectura);
     }
   }
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
