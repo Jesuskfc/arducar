@@ -1,3 +1,7 @@
+//TIEMPO DE REFRESCO >
+//ACTUALIZACIONES INNECESARIAS <
+//MAYOR MODULARIZACION LEDS
+
 /*
     +XBEE conectado tal cual al Arduino a través de los cables
     +Tierra (GND) a una de las hileras de la protoboard y 5V a la otra
@@ -26,55 +30,52 @@
 #define SENSLUZ 5
 #define SENSTEMP 4
 
-/*
-#define btnRIGHT  0
-#define btnUP     1
-#define btnDOWN   2
-#define btnLEFT   3
-#define btnSELECT 4
-#define btnNONE   5
-*/
-
 #define mdeINICIO  0
 #define mdeAPARCA  1
 #define mdeVELOC   2
+
+#define D0  B00000000
+#define D1  B00000001
+#define D2  B00000011
+#define D3  B00000111
+#define D4  B00001111
+#define D5  B00011111
+#define D6  B00111111
+#define D7  B01111111
+#define D8  B11111111
+
+byte dibuja[9]={D8,D7,D6,D5,D4,D3,D2,D1,D0};
+int cm[3];
+int cols[3][2]={{0,1},{3,4},{6,7}};
 
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7); //Creamos el LCD
 LedControl ledMatrix = LedControl(DINLED, CLKLED, CSLED, QTD_DISP);  //Creamos la SHIELD de LEDs
 
 int luzamb;  //Almacen para el valor obtenido por el sensor de luz
-int tempamb;  //Almacen para el valor obtenido por el sensor de temperatura
-float tempgrados;  //Temperatura en grados centigrados
 int modo;  //Modo actual del modulo delantero (inicio, aparcamiento, velocidad)
-float velocidad;
-//int adc_key_in = 0;
-int cm1;
-int cm2;
-int cm3;
-//char* lectura;
-char leida;
-char id;
 
-/*
-int read_LCD_buttons()
-{
-  adc_key_in = analogRead(0);
-  if (adc_key_in > 1000) return btnNONE;
-  if (adc_key_in < 50)   return btnRIGHT;
-  if (adc_key_in < 250)  return btnUP;
-  if (adc_key_in < 450)  return btnDOWN;
-  if (adc_key_in < 650)  return btnLEFT;
-  if (adc_key_in < 850)  return btnSELECT;
-  return btnNONE;  // when all others fail, return this...
-}
-*/
+float velocidad;
+
+char leida;
 
 int getMode() {  //Obtiene el modo actual en funcion de la velocidad
   if (velocidad >= 15) {
     return mdeVELOC;
   } else {
     return mdeAPARCA;
+  }
+}
+
+void mngLEDs(){
+  int divent;
+  for (int i=0; i<3; i++){
+    divent=cm[i]/5;
+    if (divent>9){
+      divent=9;
+    }
+    ledMatrix.setColumn(0, cols[i][0], dibuja[divent]);
+    ledMatrix.setColumn(0, cols[i][1], dibuja[divent]);
   }
 }
 
@@ -85,14 +86,6 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.print("Precaucion,     ");
     lcd.setCursor(0, 1);
     lcd.print("amigo conductor!");
-    delay(2500);  //Esperamos 2.5s
-    tempgrados = calcularGrados(); //Esta la cabecera de la funcion creada mas abajo, cread la funcion o si encontrais una ya creada eliminad esto
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("La temperatura  ");
-    lcd.setCursor(0, 1);
-    lcd.print("actual es ");
-    lcd.print(analogRead(5));  //Muestra la temperatura actual en grados con un decimal
     delay(2500);  //Esperamos 2.5s
   } else if (modo == mdeVELOC) {  //Si estamos en el modo de VELOCIDAD
     lcd.clear();
@@ -117,113 +110,103 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     lcd.setCursor(0, 0);
     lcd.print("SIz SMd SDr");
     lcd.setCursor(0, 1);
-    lcd.print(cm1);
+    lcd.print(cm[0]);
     lcd.setCursor(4, 1);
-    lcd.print(cm2);
+    lcd.print(cm[1]);
     lcd.setCursor(8, 1);
-    lcd.print(cm3);
+    lcd.print(cm[2]);
     lcd.setCursor(14, 1);
     lcd.print("cm");
     ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
-    delay(100);
-    ledMatrix.setColumn(0, 2, B00000000);  //Endendemos la cuarta columna
-    ledMatrix.setColumn(0, 5, B00000000);
-    if (cm1 > 40) {
-      ledMatrix.setColumn(0, 0, B00000000);
-      ledMatrix.setColumn(0, 1, B00000000);
-    } else if (cm1 > 35) {
-      ledMatrix.setColumn(0, 0, B00000001);
-      ledMatrix.setColumn(0, 1, B00000001);
-    } else if (cm1 > 30) {
-      ledMatrix.setColumn(0, 0, B00000011);
-      ledMatrix.setColumn(0, 1, B00000011);
-    } else if (cm1 > 25) {
-      ledMatrix.setColumn(0, 0, B00000111);
-      ledMatrix.setColumn(0, 1, B00000111);
-    } else if (cm1 > 20) {
-      ledMatrix.setColumn(0, 0, B00001111);
-      ledMatrix.setColumn(0, 1, B00001111);
-    } else if (cm1 > 15) {
-      ledMatrix.setColumn(0, 0, B00011111);
-      ledMatrix.setColumn(0, 1, B00011111);
-    } else if (cm1 > 10) {
-      ledMatrix.setColumn(0, 0, B00111111);
-      ledMatrix.setColumn(0, 1, B00111111);
-    } else if (cm1 > 5) {
-      ledMatrix.setColumn(0, 0, B01111111);
-      ledMatrix.setColumn(0, 1, B01111111);
-    } else if (cm1 >= 0) {
-      ledMatrix.setColumn(0, 0, B11111111);
-      ledMatrix.setColumn(0, 1, B11111111);
+    ledMatrix.setColumn(0, 2, D0);  //Endendemos la cuarta columna
+    ledMatrix.setColumn(0, 5, D0);
+    if (cm[0] > 40) {
+      ledMatrix.setColumn(0, 0, D0);
+      ledMatrix.setColumn(0, 1, D0);
+    } else if (cm[0] > 35) {
+      ledMatrix.setColumn(0, 0, D1);
+      ledMatrix.setColumn(0, 1, D1);
+    } else if (cm[0] > 30) {
+      ledMatrix.setColumn(0, 0, D2);
+      ledMatrix.setColumn(0, 1, D2);
+    } else if (cm[0] > 25) {
+      ledMatrix.setColumn(0, 0, D3);
+      ledMatrix.setColumn(0, 1, D3);
+    } else if (cm[0] > 20) {
+      ledMatrix.setColumn(0, 0, D4);
+      ledMatrix.setColumn(0, 1, D4);
+    } else if (cm[0] > 15) {
+      ledMatrix.setColumn(0, 0, D5);
+      ledMatrix.setColumn(0, 1, D5);
+    } else if (cm[0] > 10) {
+      ledMatrix.setColumn(0, 0, D6);
+      ledMatrix.setColumn(0, 1, D6);
+    } else if (cm[0] > 5) {
+      ledMatrix.setColumn(0, 0, D7);
+      ledMatrix.setColumn(0, 1, D7);
+    } else if (cm[0] >= 0) {
+      ledMatrix.setColumn(0, 0, D8);
+      ledMatrix.setColumn(0, 1, D8);
     }
 
-    if (cm2 > 40) {
-      ledMatrix.setColumn(0, 3, B00000000);
-      ledMatrix.setColumn(0, 4, B00000000);
-    } else if (cm2 > 35) {
-      ledMatrix.setColumn(0, 3, B00000001);
-      ledMatrix.setColumn(0, 4, B00000001);
-    } else if (cm2 > 30) {
-      ledMatrix.setColumn(0, 3, B00000011);
-      ledMatrix.setColumn(0, 4, B00000011);
-    } else if (cm2 > 25) {
-      ledMatrix.setColumn(0, 3, B00000111);
-      ledMatrix.setColumn(0, 4, B00000111);
-    } else if (cm2 > 20) {
-      ledMatrix.setColumn(0, 3, B00001111);
-      ledMatrix.setColumn(0, 4, B00001111);
-    } else if (cm2 > 15) {
-      ledMatrix.setColumn(0, 3, B00011111);
-      ledMatrix.setColumn(0, 4, B00011111);
-    } else if (cm2 > 10) {
-      ledMatrix.setColumn(0, 3, B00111111);
-      ledMatrix.setColumn(0, 4, B00111111);
-    } else if (cm2 > 5) {
-      ledMatrix.setColumn(0, 3, B01111111);
-      ledMatrix.setColumn(0, 4, B01111111);
-    } else if (cm2 >= 0) {
-      ledMatrix.setColumn(0, 3, B11111111);
-      ledMatrix.setColumn(0, 4, B11111111);
+    if (cm[1] > 40) {
+      ledMatrix.setColumn(0, 3, D0);
+      ledMatrix.setColumn(0, 4, D0);
+    } else if (cm[1] > 35) {
+      ledMatrix.setColumn(0, 3, D1);
+      ledMatrix.setColumn(0, 4, D1);
+    } else if (cm[1] > 30) {
+      ledMatrix.setColumn(0, 3, D2);
+      ledMatrix.setColumn(0, 4, D2);
+    } else if (cm[1] > 25) {
+      ledMatrix.setColumn(0, 3, D3);
+      ledMatrix.setColumn(0, 4, D3);
+    } else if (cm[1] > 20) {
+      ledMatrix.setColumn(0, 3, D4);
+      ledMatrix.setColumn(0, 4, D4);
+    } else if (cm[1] > 15) {
+      ledMatrix.setColumn(0, 3, D5);
+      ledMatrix.setColumn(0, 4, D5);
+    } else if (cm[1] > 10) {
+      ledMatrix.setColumn(0, 3, D6);
+      ledMatrix.setColumn(0, 4, D6);
+    } else if (cm[1] > 5) {
+      ledMatrix.setColumn(0, 3, D7);
+      ledMatrix.setColumn(0, 4, D7);
+    } else if (cm[1] >= 0) {
+      ledMatrix.setColumn(0, 3, D8);
+      ledMatrix.setColumn(0, 4, D8);
     }
 
-    if (cm3 > 40) {
-      ledMatrix.setColumn(0, 6, B00000000);
-      ledMatrix.setColumn(0, 7, B00000000);
-    } else if (cm3 > 35) {
-      ledMatrix.setColumn(0, 6, B00000001);
-      ledMatrix.setColumn(0, 7, B00000001);
-    } else if (cm3 > 30) {
-      ledMatrix.setColumn(0, 6, B00000011);
-      ledMatrix.setColumn(0, 7, B00000011);
-    } else if (cm3 > 25) {
-      ledMatrix.setColumn(0, 6, B00000111);
-      ledMatrix.setColumn(0, 7, B00000111);
-    } else if (cm3 > 20) {
-      ledMatrix.setColumn(0, 6, B00001111);
-      ledMatrix.setColumn(0, 7, B00001111);
-    } else if (cm3 > 15) {
-      ledMatrix.setColumn(0, 6, B00011111);
-      ledMatrix.setColumn(0, 7, B00011111);
-    } else if (cm3 > 10) {
-      ledMatrix.setColumn(0, 6, B00111111);
-      ledMatrix.setColumn(0, 7, B00111111);
-    } else if (cm3 > 5) {
-      ledMatrix.setColumn(0, 6, B01111111);
-      ledMatrix.setColumn(0, 7, B01111111);
-    } else if (cm3 >= 0) {
-      ledMatrix.setColumn(0, 6, B11111111);
-      ledMatrix.setColumn(0, 7, B11111111);
+    if (cm[2] > 40) {
+      ledMatrix.setColumn(0, 6, D0);
+      ledMatrix.setColumn(0, 7, D0);
+    } else if (cm[2] > 35) {
+      ledMatrix.setColumn(0, 6, D1);
+      ledMatrix.setColumn(0, 7, D1);
+    } else if (cm[2] > 30) {
+      ledMatrix.setColumn(0, 6, D2);
+      ledMatrix.setColumn(0, 7, D2);
+    } else if (cm[2] > 25) {
+      ledMatrix.setColumn(0, 6, D3);
+      ledMatrix.setColumn(0, 7, D3);
+    } else if (cm[2] > 20) {
+      ledMatrix.setColumn(0, 6, D4);
+      ledMatrix.setColumn(0, 7, D4);
+    } else if (cm[2] > 15) {
+      ledMatrix.setColumn(0, 6, D5);
+      ledMatrix.setColumn(0, 7, D5);
+    } else if (cm[2] > 10) {
+      ledMatrix.setColumn(0, 6, D6);
+      ledMatrix.setColumn(0, 7, D6);
+    } else if (cm[2] > 5) {
+      ledMatrix.setColumn(0, 6, D7);
+      ledMatrix.setColumn(0, 7, D7);
+    } else if (cm[2] >= 0) {
+      ledMatrix.setColumn(0, 6, D8);
+      ledMatrix.setColumn(0, 7, D8);
     }
-  delay(100);
-
   }
-}
-
-float calcularGrados() {
-  /*
-    Obtener el valor del sensor de calor y transformar ese valor abstracto a grados
-    centigrados
-  */
 }
 
 void setup() {
@@ -243,7 +226,7 @@ void loop() {
     String lectura;
     //Serial.println("Lectura reseteada");
     //Serial.println("Hay datos en el serial");
-    leida=Serial.read();
+    leida = Serial.read();
     if (leida == 'v') {
       //Serial.println("EL caracter es v");
       leida = Serial.read();
@@ -260,15 +243,14 @@ void loop() {
         } else {
           leida = 'f';
         }
-       
+
       }
       //Serial.println("Fin de lectura pertinente");
       velocidad = lectura.toInt();
       //Serial.println("Mostrando velocidad:");
       //Serial.println(velocidad);
 
-    }
-    if (leida == 'z') {
+    } else if (leida == 'z') {
       //Serial.println("EL caracter es z");
       leida = Serial.read();
       while (leida != 'f') {
@@ -284,14 +266,13 @@ void loop() {
         } else {
           leida = 'f';
         }
-        
+
       }
       //Serial.println("Fin de lectura pertinente");
-      cm1 = lectura.toInt();
+      cm[0] = lectura.toInt();
       //Serial.println("Mostrando cm:");
-      //Serial.println(cm1);
-    }
-    if (leida == 'x') {
+      //Serial.println(cm[0]);
+    } else if (leida == 'x') {
       //Serial.println("EL caracter es x");
       leida = Serial.read();
       while (leida != 'f') {
@@ -307,14 +288,13 @@ void loop() {
         } else {
           leida = 'f';
         }
-        
+
       }
       //Serial.println("Fin de lectura pertinente");
-      cm2 = lectura.toInt();
+      cm[1] = lectura.toInt();
       //Serial.println("Mostrando cm:");
-      //Serial.println(cm2);
-    }
-    if (leida == 'c') {
+      //Serial.println(cm[1]);
+    } else if (leida == 'c') {
       //Serial.println("EL caracter es c");
       leida = Serial.read();
       while (leida != 'f') {
@@ -330,12 +310,12 @@ void loop() {
         } else {
           leida = 'f';
         }
-        
+
       }
       //Serial.println("Fin de lectura pertinente");
-      cm3 = lectura.toInt();
+      cm[2] = lectura.toInt();
       //Serial.println("Mostrando cm:");
-      //Serial.println(cm3);
+      //Serial.println(cm[2]);
     }
   }
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
