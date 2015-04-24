@@ -44,9 +44,10 @@
 #define D7  B01111111
 #define D8  B11111111
 
-byte dibuja[9]={D8,D7,D6,D5,D4,D3,D2,D1,D0};
+byte dibuja[9] = {D8, D7, D6, D5, D4, D3, D2, D1, D0};
 int cm[3];
-int cols[3][2]={{0,1},{3,4},{6,7}};
+int cmCamb[3];
+int cols[3][2] = {{0, 1}, {3, 4}, {6, 7}};
 
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7); //Creamos el LCD
@@ -54,6 +55,7 @@ LedControl ledMatrix = LedControl(DINLED, CLKLED, CSLED, QTD_DISP);  //Creamos l
 
 int luzamb;  //Almacen para el valor obtenido por el sensor de luz
 int modo;  //Modo actual del modulo delantero (inicio, aparcamiento, velocidad)
+int modoAnt;
 
 float velocidad;
 
@@ -61,18 +63,20 @@ char leida;
 
 int getMode() {  //Obtiene el modo actual en funcion de la velocidad
   if (velocidad >= 15) {
+    ledMatrix.shutdown(0, true);
     return mdeVELOC;
   } else {
+    ledMatrix.shutdown(0, false);
     return mdeAPARCA;
   }
 }
 
-void mngLEDs(){
+void mngLEDs() {
   int divent;
-  for (int i=0; i<3; i++){
-    divent=cm[i]/5;
-    if (divent>9){
-      divent=9;
+  for (int i = 0; i < 3; i++) {
+    divent = cm[i] / 5;
+    if (divent > 8) {
+      divent = 8;
     }
     ledMatrix.setColumn(0, cols[i][0], dibuja[divent]);
     ledMatrix.setColumn(0, cols[i][1], dibuja[divent]);
@@ -81,136 +85,75 @@ void mngLEDs(){
 
 void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
   if (modo == mdeINICIO) {  //Si estamos en el modo de INICIO
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("Precaucion,     ");
-    lcd.setCursor(0, 1);
-    lcd.print("amigo conductor!");
-    delay(2500);  //Esperamos 2.5s
-  } else if (modo == mdeVELOC) {  //Si estamos en el modo de VELOCIDAD
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    if (velocidad < 100) {  //Esto es para crear un espacio en caso de que sean menos de 100km/h
-      lcd.print(" ");
+    if (modoAnt != mdeINICIO) {
+      lcd.clear();
+      ledMatrix.clearDisplay(0);
+      lcd.setCursor(0, 0);
+      lcd.print("Precaucion,     ");
+      lcd.setCursor(0, 1);
+      lcd.print("amigo conductor!");
+      delay(2500);  //Esperamos 2.5s
     }
-    lcd.print(velocidad, 2);  //Muestra la velocidad con 2 decimales
-    lcd.print("km/h");
-    lcd.setCursor(0, 1);
-    if (velocidad <= 50) {
-      lcd.print("Poblacion");
-    } else if (velocidad <= 90) {
-      lcd.print("Comarc/Nac/Local");
-    } else if (velocidad <= 120) {
-      lcd.print("Autovia/Autopist");
-    } else {
-      lcd.print("SOBRE LIMITE");
+  } else if (modo == mdeVELOC) {  //Si estamos en el modo de VELOCIDAD
+    if (modoAnt != mdeVELOC) {
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      if (velocidad < 100) {  //Esto es para crear un espacio en caso de que sean menos de 100km/h
+        lcd.print(" ");
+      }
+      lcd.print(velocidad, 2);  //Muestra la velocidad con 2 decimales
+      lcd.print("km/h");
+      lcd.setCursor(0, 1);
+      if (velocidad <= 50) {
+        lcd.print("Poblacion");
+      } else if (velocidad <= 90) {
+        lcd.print("Comarc/Nac/Local");
+      } else if (velocidad <= 120) {
+        lcd.print("Autovia/Autopist");
+      } else {
+        lcd.print("SOBRE LIMITE");
+        ledMatrix.shutdown(0, false);
+        for (int i=0;i<8;i++){
+          ledMatrix.setColumn(0,i,dibuja[0]);
+        }
+      }
     }
   } else if (modo == mdeAPARCA) {  //Si estamos en modo de aparcamiento
-    lcd.clear();
-    lcd.setCursor(0, 0);
-    lcd.print("SIz SMd SDr");
-    lcd.setCursor(0, 1);
-    lcd.print(cm[0]);
-    lcd.setCursor(4, 1);
-    lcd.print(cm[1]);
-    lcd.setCursor(8, 1);
-    lcd.print(cm[2]);
-    lcd.setCursor(14, 1);
-    lcd.print("cm");
-    ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
-    ledMatrix.setColumn(0, 2, D0);  //Endendemos la cuarta columna
-    ledMatrix.setColumn(0, 5, D0);
-    if (cm[0] > 40) {
-      ledMatrix.setColumn(0, 0, D0);
-      ledMatrix.setColumn(0, 1, D0);
-    } else if (cm[0] > 35) {
-      ledMatrix.setColumn(0, 0, D1);
-      ledMatrix.setColumn(0, 1, D1);
-    } else if (cm[0] > 30) {
-      ledMatrix.setColumn(0, 0, D2);
-      ledMatrix.setColumn(0, 1, D2);
-    } else if (cm[0] > 25) {
-      ledMatrix.setColumn(0, 0, D3);
-      ledMatrix.setColumn(0, 1, D3);
-    } else if (cm[0] > 20) {
-      ledMatrix.setColumn(0, 0, D4);
-      ledMatrix.setColumn(0, 1, D4);
-    } else if (cm[0] > 15) {
-      ledMatrix.setColumn(0, 0, D5);
-      ledMatrix.setColumn(0, 1, D5);
-    } else if (cm[0] > 10) {
-      ledMatrix.setColumn(0, 0, D6);
-      ledMatrix.setColumn(0, 1, D6);
-    } else if (cm[0] > 5) {
-      ledMatrix.setColumn(0, 0, D7);
-      ledMatrix.setColumn(0, 1, D7);
-    } else if (cm[0] >= 0) {
-      ledMatrix.setColumn(0, 0, D8);
-      ledMatrix.setColumn(0, 1, D8);
+    mngLEDs();
+    if (modoAnt != mdeAPARCA) {
+      cmCamb[0] = 1;
+      cmCamb[1] = 1;
+      cmCamb[2] = 1;
+      lcd.clear();
+      lcd.setCursor(0, 0);
+      //lcd.print("SIz SMd SDr");
+      lcd.setCursor(14, 1);
+      lcd.print("cm");
+      ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
+      ledMatrix.setColumn(0, 2, D0);  //Endendemos la cuarta columna
+      ledMatrix.setColumn(0, 5, D0);
     }
-
-    if (cm[1] > 40) {
-      ledMatrix.setColumn(0, 3, D0);
-      ledMatrix.setColumn(0, 4, D0);
-    } else if (cm[1] > 35) {
-      ledMatrix.setColumn(0, 3, D1);
-      ledMatrix.setColumn(0, 4, D1);
-    } else if (cm[1] > 30) {
-      ledMatrix.setColumn(0, 3, D2);
-      ledMatrix.setColumn(0, 4, D2);
-    } else if (cm[1] > 25) {
-      ledMatrix.setColumn(0, 3, D3);
-      ledMatrix.setColumn(0, 4, D3);
-    } else if (cm[1] > 20) {
-      ledMatrix.setColumn(0, 3, D4);
-      ledMatrix.setColumn(0, 4, D4);
-    } else if (cm[1] > 15) {
-      ledMatrix.setColumn(0, 3, D5);
-      ledMatrix.setColumn(0, 4, D5);
-    } else if (cm[1] > 10) {
-      ledMatrix.setColumn(0, 3, D6);
-      ledMatrix.setColumn(0, 4, D6);
-    } else if (cm[1] > 5) {
-      ledMatrix.setColumn(0, 3, D7);
-      ledMatrix.setColumn(0, 4, D7);
-    } else if (cm[1] >= 0) {
-      ledMatrix.setColumn(0, 3, D8);
-      ledMatrix.setColumn(0, 4, D8);
+    if (cmCamb[0]) {
+      lcd.setCursor(0, 1);
+      lcd.print(cm[0]);
+      cmCamb[0] = 0;
     }
-
-    if (cm[2] > 40) {
-      ledMatrix.setColumn(0, 6, D0);
-      ledMatrix.setColumn(0, 7, D0);
-    } else if (cm[2] > 35) {
-      ledMatrix.setColumn(0, 6, D1);
-      ledMatrix.setColumn(0, 7, D1);
-    } else if (cm[2] > 30) {
-      ledMatrix.setColumn(0, 6, D2);
-      ledMatrix.setColumn(0, 7, D2);
-    } else if (cm[2] > 25) {
-      ledMatrix.setColumn(0, 6, D3);
-      ledMatrix.setColumn(0, 7, D3);
-    } else if (cm[2] > 20) {
-      ledMatrix.setColumn(0, 6, D4);
-      ledMatrix.setColumn(0, 7, D4);
-    } else if (cm[2] > 15) {
-      ledMatrix.setColumn(0, 6, D5);
-      ledMatrix.setColumn(0, 7, D5);
-    } else if (cm[2] > 10) {
-      ledMatrix.setColumn(0, 6, D6);
-      ledMatrix.setColumn(0, 7, D6);
-    } else if (cm[2] > 5) {
-      ledMatrix.setColumn(0, 6, D7);
-      ledMatrix.setColumn(0, 7, D7);
-    } else if (cm[2] >= 0) {
-      ledMatrix.setColumn(0, 6, D8);
-      ledMatrix.setColumn(0, 7, D8);
+    if (cmCamb[1]) {
+      lcd.setCursor(4, 1);
+      lcd.print(cm[1]);
+      cmCamb[1] = 0;
+    }
+    if (cmCamb[2]) {
+      lcd.setCursor(8, 1);
+      lcd.print(cm[2]);
+      cmCamb[2] = 0;
     }
   }
 }
 
 void setup() {
   //inicio del lcd
+  modoAnt = 5;
   lcd.begin(16, 2);
   modo = mdeINICIO;
   velocidad = 0.0;
@@ -221,7 +164,6 @@ void setup() {
 }
 
 void loop() {
-  //lectura = "";
   while (Serial.available() > 0) {
     String lectura;
     //Serial.println("Lectura reseteada");
@@ -270,6 +212,7 @@ void loop() {
       }
       //Serial.println("Fin de lectura pertinente");
       cm[0] = lectura.toInt();
+      cmCamb[0] = 1;
       //Serial.println("Mostrando cm:");
       //Serial.println(cm[0]);
     } else if (leida == 'x') {
@@ -292,6 +235,7 @@ void loop() {
       }
       //Serial.println("Fin de lectura pertinente");
       cm[1] = lectura.toInt();
+      cmCamb[1] = 1;
       //Serial.println("Mostrando cm:");
       //Serial.println(cm[1]);
     } else if (leida == 'c') {
@@ -314,9 +258,11 @@ void loop() {
       }
       //Serial.println("Fin de lectura pertinente");
       cm[2] = lectura.toInt();
+      cmCamb[2] = 1;
       //Serial.println("Mostrando cm:");
       //Serial.println(cm[2]);
     }
+    //delay(1000);
   }
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
     pinMode(10, INPUT);
@@ -325,5 +271,6 @@ void loop() {
     digitalWrite(10, LOW);
   }
   mngMode(modo);  //Gestiona el modo
+  modoAnt = modo;
   modo = getMode();  //Obtiene el nuevo modo
 }
