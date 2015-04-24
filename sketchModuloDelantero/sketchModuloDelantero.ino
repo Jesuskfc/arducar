@@ -57,7 +57,7 @@ int luzamb;  //Almacen para el valor obtenido por el sensor de luz
 int modo;  //Modo actual del modulo delantero (inicio, aparcamiento, velocidad)
 int modoAnt;
 
-float velocidad;
+int velocidad;
 
 char leida;
 
@@ -101,7 +101,7 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
       if (velocidad < 100) {  //Esto es para crear un espacio en caso de que sean menos de 100km/h
         lcd.print(" ");
       }
-      lcd.print(velocidad, 2);  //Muestra la velocidad con 2 decimales
+      lcd.print(velocidad);  //Muestra la velocidad con 2 decimales
       lcd.print("km/h");
       lcd.setCursor(0, 1);
       if (velocidad <= 50) {
@@ -156,7 +156,7 @@ void setup() {
   modoAnt = 5;
   lcd.begin(16, 2);
   modo = mdeINICIO;
-  velocidad = 0.0;
+  velocidad = 0;
   ledMatrix.shutdown(0, false);  //Ponemos el estado apagado a falso en la matriz de LEDs 0, es decir, encendemos la matriz de LEDs
   ledMatrix.setIntensity(0, 16);  //Colocamos un valor de intensidad de brillo de 5 (0~16)
   ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
