@@ -45,9 +45,10 @@
 #define D8  B11111111
 
 byte dibuja[9] = {D8, D7, D6, D5, D4, D3, D2, D1, D0};
-int cm[3];
+int cm[3]={1000,1000,1000};
 int cmCamb[3];
 int cols[3][2] = {{0, 1}, {3, 4}, {6, 7}};
+int pos;
 
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7); //Creamos el LCD
@@ -58,12 +59,15 @@ int modo;  //Modo actual del modulo delantero (inicio, aparcamiento, velocidad)
 int modoAnt;
 
 int velocidad;
+int velocidadAnt;
 
 char leida;
 
 int getMode() {  //Obtiene el modo actual en funcion de la velocidad
   if (velocidad >= 15) {
-    ledMatrix.shutdown(0, true);
+    if (velocidad <= 120) {
+      ledMatrix.shutdown(0, true);
+    }
     return mdeVELOC;
   } else {
     ledMatrix.shutdown(0, false);
@@ -72,13 +76,14 @@ int getMode() {  //Obtiene el modo actual en funcion de la velocidad
 }
 
 void mngLEDs() {
-  int divent;
+  int divent; //division entera de la distancia entre 5 (los LEDs representan rangos de 5cm)
   for (int i = 0; i < 3; i++) {
     divent = cm[i] / 5;
     if (divent > 8) {
       divent = 8;
-    }
-    ledMatrix.setColumn(0, cols[i][0], dibuja[divent]);
+    }    ledMatrix.setColumn(0, cols[i][0], dibuja[divent]);
+
+
     ledMatrix.setColumn(0, cols[i][1], dibuja[divent]);
   }
 }
@@ -97,28 +102,37 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
   } else if (modo == mdeVELOC) {  //Si estamos en el modo de VELOCIDAD
     if (modoAnt != mdeVELOC) {
       lcd.clear();
-      lcd.setCursor(0, 0);
-      if (velocidad < 100) {  //Esto es para crear un espacio en caso de que sean menos de 100km/h
-        lcd.print(" ");
-      }
-      lcd.print(velocidad);  //Muestra la velocidad con 2 decimales
-      lcd.print("km/h");
-      lcd.setCursor(0, 1);
-      if (velocidad <= 50) {
-        lcd.print("Poblacion");
-      } else if (velocidad <= 90) {
-        lcd.print("Comarc/Nac/Local");
-      } else if (velocidad <= 120) {
-        lcd.print("Autovia/Autopist");
-      } else {
-        lcd.print("SOBRE LIMITE");
-        ledMatrix.shutdown(0, false);
-        for (int i=0;i<8;i++){
-          ledMatrix.setColumn(0,i,dibuja[0]);
-        }
-      }
+
+
     }
-  } else if (modo == mdeAPARCA) {  //Si estamos en modo de aparcamiento
+    lcd.setCursor(0, 0);
+    if (velocidad < 100) {  //Esto es para crear un espacio en caso de que sean menos de 100km/h
+      lcd.print(" ");
+    }
+    lcd.print(velocidad);  //Muestra la velocidad con 2 decimales
+    lcd.print("km/h");
+    lcd.setCursor(0, 1);
+    if (velocidad <= 50) {
+      lcd.print("Poblacion");
+    } else if (velocidad <= 90) {
+      lcd.print("Comarc/Nac/Local");
+    } else if (velocidad <= 120) {
+      lcd.print("Autovia/Autopist");
+    }
+    if (velocidad > 120) {
+      lcd.print("                ");
+      ledMatrix.shutdown(0, false);
+      for (int i = 0; i < 8; i++) {
+        ledMatrix.setColumn(0, i, dibuja[0]);
+      }
+      delay(100);
+      for (int i = 0; i < 8; i++) {
+        ledMatrix.setColumn(0, i, dibuja[8]);
+      }
+      delay(100);
+    }
+  }
+  else if (modo == mdeAPARCA) {  //Si estamos en modo de aparcamiento
     mngLEDs();
     if (modoAnt != mdeAPARCA) {
       cmCamb[0] = 1;
@@ -135,17 +149,35 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
     }
     if (cmCamb[0]) {
       lcd.setCursor(0, 1);
-      lcd.print(cm[0]);
+      lcd.print("   ");
+      lcd.setCursor(0, 1);
+      if (cm[0] > 999) {
+        lcd.print("HIG");
+      } else {
+        lcd.print(cm[0]);
+      }
       cmCamb[0] = 0;
     }
     if (cmCamb[1]) {
       lcd.setCursor(4, 1);
-      lcd.print(cm[1]);
+      lcd.print("   ");
+      lcd.setCursor(4, 1);
+      if (cm[1] > 999) {
+        lcd.print("HIG");
+      } else {
+        lcd.print(cm[1]);
+      }
       cmCamb[1] = 0;
     }
     if (cmCamb[2]) {
       lcd.setCursor(8, 1);
-      lcd.print(cm[2]);
+      lcd.print("   ");
+      lcd.setCursor(8, 1);
+      if (cm[2] > 999) {
+        lcd.print("HIG");
+      } else {
+        lcd.print(cm[2]);
+      }
       cmCamb[2] = 0;
     }
   }
@@ -160,10 +192,12 @@ void setup() {
   ledMatrix.shutdown(0, false);  //Ponemos el estado apagado a falso en la matriz de LEDs 0, es decir, encendemos la matriz de LEDs
   ledMatrix.setIntensity(0, 16);  //Colocamos un valor de intensidad de brillo de 5 (0~16)
   ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
-  Serial.begin(9600);  //Inicia la conexion entre XBEEs
+  Serial.begin(115200);  //Inicia la conexion entre XBEEs
+  pos = 0;
 }
 
 void loop() {
+
   while (Serial.available() > 0) {
     String lectura;
     //Serial.println("Lectura reseteada");
@@ -188,6 +222,7 @@ void loop() {
 
       }
       //Serial.println("Fin de lectura pertinente");
+      velocidadAnt = velocidad;
       velocidad = lectura.toInt();
       //Serial.println("Mostrando velocidad:");
       //Serial.println(velocidad);
@@ -255,12 +290,13 @@ void loop() {
           leida = 'f';
         }
 
-      }
+      
       //Serial.println("Fin de lectura pertinente");
       cm[2] = lectura.toInt();
       cmCamb[2] = 1;
       //Serial.println("Mostrando cm:");
       //Serial.println(cm[2]);
+    }
     }
     //delay(1000);
   }
@@ -270,7 +306,9 @@ void loop() {
     pinMode(10, OUTPUT);
     digitalWrite(10, LOW);
   }
+
   mngMode(modo);  //Gestiona el modo
   modoAnt = modo;
   modo = getMode();  //Obtiene el nuevo modo
+  //delay(700);
 }
