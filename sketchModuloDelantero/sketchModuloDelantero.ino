@@ -1,7 +1,3 @@
-//TIEMPO DE REFRESCO >
-//ACTUALIZACIONES INNECESARIAS <
-//MAYOR MODULARIZACION LEDS
-
 /*
     +XBEE conectado tal cual al Arduino a través de los cables
     +Tierra (GND) a una de las hileras de la protoboard y 5V a la otra
@@ -20,7 +16,7 @@
 */
 
 #include <LiquidCrystal.h>
-#include "LedControl.h"
+#include <LedControl.h>
 
 #define DINLED 7
 #define CSLED 6
@@ -45,10 +41,9 @@
 #define D8  B11111111
 
 byte dibuja[9] = {D8, D7, D6, D5, D4, D3, D2, D1, D0};
-int cm[3]={1000,1000,1000};
+int cm[3];
 int cmCamb[3];
 int cols[3][2] = {{0, 1}, {3, 4}, {6, 7}};
-int pos;
 
 
 LiquidCrystal lcd(8, 9, 4, 5, 6, 7); //Creamos el LCD
@@ -75,7 +70,7 @@ int getMode() {  //Obtiene el modo actual en funcion de la velocidad
   }
 }
 
-void mngLEDs() {
+void mngLEDs() {//muestra los valores de distancia de una forma grafica en la matriz de LEDs
   int divent; //division entera de la distancia entre 5 (los LEDs representan rangos de 5cm)
   for (int i = 0; i < 3; i++) {
     divent = cm[i] / 5;
@@ -140,11 +135,10 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
       cmCamb[2] = 1;
       lcd.clear();
       lcd.setCursor(0, 0);
-      //lcd.print("SIz SMd SDr");
       lcd.setCursor(14, 1);
       lcd.print("cm");
       ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
-      ledMatrix.setColumn(0, 2, D0);  //Endendemos la cuarta columna
+      ledMatrix.setColumn(0, 2, D0);
       ledMatrix.setColumn(0, 5, D0);
     }
     if (cmCamb[0]) {
@@ -183,8 +177,63 @@ void mngMode(int modo) {  //Realiza las acciones correspondientes al modo actual
   }
 }
 
+void lecturaDatos() { //lee los datos enviados por el modulo trasero
+  while (Serial.available() > 0) {
+    String lectura;
+    leida = Serial.read();
+    if (leida == 'v') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        lectura = lectura + leida;
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
+      }
+      velocidadAnt = velocidad;
+      velocidad = lectura.toInt();
+    } else if (leida == 'z') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        lectura = lectura + leida;
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
+      }
+      cm[0] = lectura.toInt();
+      cmCamb[0] = 1;
+    } else if (leida == 'x') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        lectura = lectura + leida;
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
+      }
+      cm[1] = lectura.toInt();
+      cmCamb[1] = 1;
+    } else if (leida == 'c') {
+      leida = Serial.read();
+      while (leida != 'f') {
+        lectura = lectura + leida;
+        if (Serial.available() > 0) {
+          leida = Serial.read();
+        } else {
+          leida = 'f';
+        }
+        cm[2] = lectura.toInt();
+        cmCamb[2] = 1;
+      }
+    }
+  }
+}
+
 void setup() {
-  //inicio del lcd
   modoAnt = 5;
   lcd.begin(16, 2);
   modo = mdeINICIO;
@@ -192,123 +241,19 @@ void setup() {
   ledMatrix.shutdown(0, false);  //Ponemos el estado apagado a falso en la matriz de LEDs 0, es decir, encendemos la matriz de LEDs
   ledMatrix.setIntensity(0, 16);  //Colocamos un valor de intensidad de brillo de 5 (0~16)
   ledMatrix.clearDisplay(0);     //Limpiamos la matriz 0
-  Serial.begin(115200);  //Inicia la conexion entre XBEEs
-  pos = 0;
+  Serial.begin(9600);  //Inicia la conexion entre XBEEs
 }
 
 void loop() {
 
-  while (Serial.available() > 0) {
-    String lectura;
-    //Serial.println("Lectura reseteada");
-    //Serial.println("Hay datos en el serial");
-    leida = Serial.read();
-    if (leida == 'v') {
-      //Serial.println("EL caracter es v");
-      leida = Serial.read();
-      while (leida != 'f') {
-        //Serial.println("Continua la lectura");
-        //Serial.println(leida);
-        //Serial.println("Valor leido mostrado");
-        lectura = lectura + leida;
-        //Serial.println("Mostrando string:");
-        //Serial.println(lectura);
-        //Serial.println("String mostrado");
-        if (Serial.available() > 0) {
-          leida = Serial.read();
-        } else {
-          leida = 'f';
-        }
-
-      }
-      //Serial.println("Fin de lectura pertinente");
-      velocidadAnt = velocidad;
-      velocidad = lectura.toInt();
-      //Serial.println("Mostrando velocidad:");
-      //Serial.println(velocidad);
-
-    } else if (leida == 'z') {
-      //Serial.println("EL caracter es z");
-      leida = Serial.read();
-      while (leida != 'f') {
-        //Serial.println("Continua la lectura");
-        //Serial.println(leida);
-        //Serial.println("Valor leido mostrado");
-        lectura = lectura + leida;
-        //Serial.println("Mostrando string:");
-        //Serial.println(lectura);
-        //Serial.println("String mostrado");
-        if (Serial.available() > 0) {
-          leida = Serial.read();
-        } else {
-          leida = 'f';
-        }
-
-      }
-      //Serial.println("Fin de lectura pertinente");
-      cm[0] = lectura.toInt();
-      cmCamb[0] = 1;
-      //Serial.println("Mostrando cm:");
-      //Serial.println(cm[0]);
-    } else if (leida == 'x') {
-      //Serial.println("EL caracter es x");
-      leida = Serial.read();
-      while (leida != 'f') {
-        //Serial.println("Continua la lectura");
-        //Serial.println(leida);
-        //Serial.println("Valor leido mostrado");
-        lectura = lectura + leida;
-        //Serial.println("Mostrando string:");
-        //Serial.println(lectura);
-        //Serial.println("String mostrado");
-        if (Serial.available() > 0) {
-          leida = Serial.read();
-        } else {
-          leida = 'f';
-        }
-
-      }
-      //Serial.println("Fin de lectura pertinente");
-      cm[1] = lectura.toInt();
-      cmCamb[1] = 1;
-      //Serial.println("Mostrando cm:");
-      //Serial.println(cm[1]);
-    } else if (leida == 'c') {
-      //Serial.println("EL caracter es c");
-      leida = Serial.read();
-      while (leida != 'f') {
-        //Serial.println("Continua la lectura");
-        //Serial.println(leida);
-        //Serial.println("Valor leido mostrado");
-        lectura = lectura + leida;
-        //Serial.println("Mostrando string:");
-        //Serial.println(lectura);
-        //Serial.println("String mostrado");
-        if (Serial.available() > 0) {
-          leida = Serial.read();
-        } else {
-          leida = 'f';
-        }
-
-      
-      //Serial.println("Fin de lectura pertinente");
-      cm[2] = lectura.toInt();
-      cmCamb[2] = 1;
-      //Serial.println("Mostrando cm:");
-      //Serial.println(cm[2]);
-    }
-    }
-    //delay(1000);
-  }
+  lecturaDatos();
   if (analogRead(5) < 900) {  //Enciende la luz si esta el sensor recibe un valor de mas de 900, si no la apaga
     pinMode(10, INPUT);
   } else {
     pinMode(10, OUTPUT);
     digitalWrite(10, LOW);
   }
-
   mngMode(modo);  //Gestiona el modo
   modoAnt = modo;
   modo = getMode();  //Obtiene el nuevo modo
-  //delay(700);
 }
